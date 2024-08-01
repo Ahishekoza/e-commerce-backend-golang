@@ -240,3 +240,27 @@ func UpdateProduct(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"success": "Product Updated Successfully !"})
 }
+
+func DeleteProduct(c *fiber.Ctx) error {
+	collection := database.DB.Collection("products")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	id := c.Params("id")
+	ObjectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	filters := bson.M{"_id": ObjectId}
+
+	result, err := collection.DeleteOne(ctx, filters)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	fmt.Println(result)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"success": `Product Deleted Successfully!`})
+}
